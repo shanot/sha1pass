@@ -9,6 +9,14 @@ struct Hash {
 
 class Sha1pass : public Gtk::Window {
 public:
+  void clear_text() {
+    salt.set_text("");
+    key.set_text("");
+  }
+  void set_text_visibility(const bool &b) {
+    salt.set_visibility(b);
+    key.set_visibility(b);
+  }
   Sha1pass(const std::vector<Hash> &in) : buttons(in.size()), hash(in) {
     add(grid);
     auto ewidth = buttons.size() / 2;
@@ -17,15 +25,28 @@ public:
     grid.attach(salt, 0, row, ewidth, 1);
     grid.attach(key, ewidth, row, ewidth, 1);
     show.set_active(false);
-    salt.set_visibility(show.get_active());
-    key.set_visibility(show.get_active());
+    set_text_visibility(show.get_active());
+    secure.set_active(true);
 
     ++row;
     grid.attach(show, 0, row, 1, 1);
     show.set_label("show");
     show.signal_clicked().connect([&]() {
-      salt.set_visibility(show.get_active());
-      key.set_visibility(show.get_active());
+      if (secure.get_active() && show.get_active()) {
+        clear_text();
+        secure.set_active(false);
+      }
+      set_text_visibility(show.get_active());
+    });
+    grid.attach(secure, 1, row, 1, 1);
+    secure.set_label("secure");
+    secure.signal_clicked().connect([&]() {
+      if (secure.get_active()) {
+        show.set_active(false);
+        set_text_visibility(show.get_active());
+      } else {
+        clear_text();
+      }
     });
 
     ++row;
@@ -51,6 +72,7 @@ private:
   Gtk::Entry salt;
   Gtk::Entry key;
   Gtk::CheckButton show;
+  Gtk::CheckButton secure;
   std::vector<Gtk::Button> buttons;
   std::vector<Hash> hash;
 };
