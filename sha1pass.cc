@@ -26,7 +26,7 @@ public:
     grid.attach(key, ewidth, row, ewidth, 1);
     show.set_active(false);
     set_text_visibility(show.get_active());
-    secure.set_active(true);
+    secure.set_active(false);
 
     ++row;
     grid.attach(show, 0, row, 1, 1);
