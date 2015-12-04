@@ -1,4 +1,4 @@
-prefix = /usr/local
+PREFIX = /usr/local
 CXXFLAGS+=-std=c++11
 CXXFLAGS+=-g
 CXXFLAGS+=`pkg-config --cflags --libs gtkmm-3.0`
