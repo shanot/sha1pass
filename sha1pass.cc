@@ -22,7 +22,9 @@ public:
         const auto in = salt.get_text() + key.get_text();
         std::stringstream cmd;
         cmd << "echo -n " << in << " | openssl sha1 " << hash[i].hashcmd << " | xclip";
-        system(cmd.str().c_str());
+        if (system(cmd.str().c_str())) {
+          abort();
+        }
       }});
       grid.attach(buttons[i], i, 1, 1, 1);
     }
@@ -43,8 +45,8 @@ int main(int argc, char *argv[]) {
 
   Hash hex{"HEX",           "-hex -r | cut -d ' ' -f 1 | tr -d '\n'"};
   Hash hex_h{"HEX half",    "-hex -r | cut -d ' ' -f 1 | head -c 20"};
-  Hash b64{"Base64",        "-binary | openssl base64 | tr -d '\n'"};
-  Hash b64_h{"Base64 half", "-binary | openssl base64 | head -c 14"};
+  Hash b64{"Base64",        "-binary | openssl base64  | tr -d '\n'"};
+  Hash b64_h{"Base64 half", "-binary | openssl base64  | head -c 14"};
 
   Sha1pass sha1pass{{hex, hex_h, b64, b64_h}};
 
