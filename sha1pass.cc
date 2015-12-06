@@ -1,10 +1,60 @@
 #include <gtkmm.h>
+
 #include <vector>
 #include <sstream>
+#include <algorithm>
+#include <iomanip>
+#include <functional>
+
+#include <openssl/sha.h>
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+
+std::vector<unsigned char> get_sha1(const std::string &s) {
+  std::vector<unsigned char> d(s.size());
+  std::copy(s.cbegin(), s.cend(), d.begin());
+  std::vector<unsigned char> md(SHA_DIGEST_LENGTH);
+  SHA1(d.data(), d.size(), md.data());
+  return md;
+}
+
+std::string get_hex(const std::vector<unsigned char> &md) {
+  std::vector<int> tmp(md.size());
+  std::copy(md.begin(), md.end(), tmp.begin());
+  std::stringstream out;
+  for (const auto &c : tmp) {
+    out << std::setfill('0') << std::setw(2) << std::hex << c;
+  }
+  return out.str();
+}
+
+std::string get_b64(const std::vector<unsigned char> &md) {
+  BIO *b64 = BIO_new(BIO_f_base64());
+  BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+  BIO *mem = BIO_new(BIO_s_mem());
+  BIO_push(b64, mem);
+  BIO_write(b64, md.data(), md.size());
+  BIO_flush(b64);
+
+  unsigned char *out;
+  const auto len = BIO_get_mem_data(mem, &out);
+
+  std::string outs(len, '\0');
+  std::copy_n(out, len, outs.begin());
+
+  BIO_free_all(b64);
+  return outs;
+}
+
+std::string get_half(const std::string &in) {
+  std::string out(in.size() / 2, '\0');
+  std::copy_n(in.begin(), in.size() / 2, out.begin());
+  return out;
+}
 
 struct Hash {
   std::string name;
-  std::string hashcmd;
+  std::function<std::string(std::string)> get;
 };
 
 class Sha1pass : public Gtk::Window {
@@ -54,12 +104,9 @@ public:
       buttons[i].set_label(hash[i].name);
       buttons[i].signal_clicked().connect({[=]() {
         const auto in = salt.get_text() + key.get_text();
-        std::stringstream cmd;
-        cmd << "echo -n " << in << " | openssl sha1 " << hash[i].hashcmd
-            << " | xclip";
-        if (system(cmd.str().c_str())) {
-          abort();
-        }
+        const auto out = hash[i].get(in);
+        auto clip = Gtk::Clipboard::get();
+        clip->set_text(out);
       }});
       grid.attach(buttons[i], i, row, 1, 1);
     }
@@ -80,10 +127,12 @@ private:
 int main(int argc, char *argv[]) {
   auto app = Gtk::Application::create(argc, argv, "org.sha1pass");
 
-  Hash hex{"HEX", "-hex -r | cut -d ' ' -f 1 | tr -d '\n'"};
-  Hash hex_h{"HEX half", "-hex -r | cut -d ' ' -f 1 | head -c 20"};
-  Hash b64{"Base64", "-binary | openssl base64  | tr -d '\n'"};
-  Hash b64_h{"Base64 half", "-binary | openssl base64  | head -c 14"};
+  Hash hex{"hex", [](std::string s) { return get_hex(get_sha1(s)); }};
+  Hash hex_h{"hex half",
+             [](std::string s) { return get_half(get_hex(get_sha1(s))); }};
+  Hash b64{"Base64", [](std::string s) { return get_b64(get_sha1(s)); }};
+  Hash b64_h{"Base64 half",
+             [](std::string s) { return get_half(get_b64(get_sha1(s))); }};
 
   Sha1pass sha1pass{{hex, hex_h, b64, b64_h}};
 
