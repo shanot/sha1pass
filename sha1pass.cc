@@ -103,6 +103,8 @@ public:
     grid.attach(complex, 2, row, 1,1);
     complex.set_label("complex");
 
+    grid.attach(peek, 3, row, 1, 1);
+
     ++row;
     for (auto i(0); i < hash.size(); ++i) {
       buttons[i].set_label(hash[i].name);
@@ -113,6 +115,7 @@ public:
           out+=".H0k";
         }
         auto clip = Gtk::Clipboard::get();
+        peek.set_text(out.substr(0,5));
         clip->set_text(out);
       }});
       grid.attach(buttons[i], i, row, 1, 1);
@@ -128,6 +131,7 @@ private:
   Gtk::CheckButton show;
   Gtk::CheckButton secure;
   Gtk::CheckButton complex;
+  Gtk::Label peek;
   std::vector<Gtk::Button> buttons;
   std::vector<Hash> hash;
 };
