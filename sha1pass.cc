@@ -88,6 +88,7 @@ public:
       }
       set_text_visibility(show.get_active());
     });
+
     grid.attach(secure, 1, row, 1, 1);
     secure.set_label("secure");
     secure.signal_clicked().connect([&]() {
@@ -99,12 +100,18 @@ public:
       }
     });
 
+    grid.attach(complex, 2, row, 1,1);
+    complex.set_label("complex");
+
     ++row;
     for (auto i(0); i < hash.size(); ++i) {
       buttons[i].set_label(hash[i].name);
       buttons[i].signal_clicked().connect({[=]() {
         const auto in = salt.get_text() + key.get_text();
-        const auto out = hash[i].get(in);
+        auto out = hash[i].get(in);
+        if(complex.get_active()){
+          out+=".H0k";
+        }
         auto clip = Gtk::Clipboard::get();
         clip->set_text(out);
       }});
@@ -120,6 +127,7 @@ private:
   Gtk::Entry key;
   Gtk::CheckButton show;
   Gtk::CheckButton secure;
+  Gtk::CheckButton complex;
   std::vector<Gtk::Button> buttons;
   std::vector<Hash> hash;
 };
