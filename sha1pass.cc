@@ -1,14 +1,39 @@
+Copyright (c) 2015 Samuel Hanot
+
+
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
 #include <gtkmm.h>
-
-#include <vector>
-#include <sstream>
-#include <algorithm>
-#include <iomanip>
-#include <functional>
-
-#include <openssl/sha.h>
 #include <openssl/bio.h>
 #include <openssl/evp.h>
+#include <openssl/sha.h>
+
+#include <algorithm>
+#include <functional>
+#include <iomanip>
+#include <sstream>
+#include <vector>
 
 std::vector<unsigned char> get_sha1(const std::string &s) {
   std::vector<unsigned char> d(s.size());
@@ -59,14 +84,6 @@ struct Hash {
 
 class Sha1pass : public Gtk::Window {
 public:
-  void clear_text() {
-    salt.set_text("");
-    key.set_text("");
-  }
-  void set_text_visibility(const bool &b) {
-    salt.set_visibility(b);
-    key.set_visibility(b);
-  }
   Sha1pass(const std::vector<Hash> &in) : buttons(in.size()), hash(in) {
     add(grid);
     auto ewidth = buttons.size() / 2;
@@ -100,7 +117,7 @@ public:
       }
     });
 
-    grid.attach(complex, 2, row, 1,1);
+    grid.attach(complex, 2, row, 1, 1);
     complex.set_label("complex");
 
     grid.attach(peek, 3, row, 1, 1);
@@ -111,11 +128,11 @@ public:
       buttons[i].signal_clicked().connect({[=]() {
         const auto in = salt.get_text() + key.get_text();
         auto out = hash[i].get(in);
-        if(complex.get_active()){
-          out+=".H0k";
+        if (complex.get_active()) {
+          out += ".H0k";
         }
+        peek.set_text(out.substr(0, 5));
         auto clip = Gtk::Clipboard::get();
-        peek.set_text(out.substr(0,5));
         clip->set_text(out);
       }});
       grid.attach(buttons[i], i, row, 1, 1);
@@ -134,10 +151,19 @@ private:
   Gtk::Label peek;
   std::vector<Gtk::Button> buttons;
   std::vector<Hash> hash;
+
+  void clear_text() {
+    salt.set_text("");
+    key.set_text("");
+  }
+  void set_text_visibility(const bool &b) {
+    salt.set_visibility(b);
+    key.set_visibility(b);
+  }
 };
 
-int main(int argc, char *argv[]) {
-  auto app = Gtk::Application::create(argc, argv, "org.sha1pass");
+main() {
+  auto app = Gtk::Application::create("org.sha1pass");
 
   Hash hex{"hex", [](std::string s) { return get_hex(get_sha1(s)); }};
   Hash hex_h{"hex half",
