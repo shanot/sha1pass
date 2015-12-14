@@ -35,7 +35,7 @@ THE SOFTWARE.*/
 #include <sstream>
 #include <vector>
 
-std::vector<unsigned char> get_sha1(const std::string &s) {
+auto get_sha1(const std::string &s) {
   std::vector<unsigned char> d(s.size());
   std::copy(s.cbegin(), s.cend(), d.begin());
   std::vector<unsigned char> md(SHA_DIGEST_LENGTH);
@@ -43,7 +43,7 @@ std::vector<unsigned char> get_sha1(const std::string &s) {
   return md;
 }
 
-std::string get_hex(const std::vector<unsigned char> &md) {
+auto get_hex(const std::vector<unsigned char> &md) {
   std::vector<int> tmp(md.size());
   std::copy(md.begin(), md.end(), tmp.begin());
   std::stringstream out;
@@ -53,7 +53,7 @@ std::string get_hex(const std::vector<unsigned char> &md) {
   return out.str();
 }
 
-std::string get_b64(const std::vector<unsigned char> &md) {
+auto get_b64(const std::vector<unsigned char> &md) {
   BIO *b64 = BIO_new(BIO_f_base64());
   BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
   BIO *mem = BIO_new(BIO_s_mem());
@@ -71,9 +71,9 @@ std::string get_b64(const std::vector<unsigned char> &md) {
   return outs;
 }
 
-std::string get_half(const std::string &in) {
+auto get_half(const std::string &in) {
   std::string out(in.size() / 2, '\0');
-  std::copy_n(in.begin(), in.size() / 2, out.begin());
+  std::copy_n(in.begin(), out.size(), out.begin());
   return out;
 }
 

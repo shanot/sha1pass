@@ -1,5 +1,5 @@
 PREFIX = /usr/local
-CXXFLAGS+=-std=c++11 -Os
+CXXFLAGS+=-std=c++14
 CXXFLAGS+=`pkg-config --cflags --libs gtkmm-3.0 openssl`
 
 all:sha1pass
